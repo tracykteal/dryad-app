@@ -41,6 +41,7 @@ gem 'sass-rails', '~> 5.0'
 gem 'therubyracer', platforms: :ruby
 gem 'turbolinks'
 
+gem 'rack-attack'
 gem 'uglifier', '~> 3.0.4'
 gem 'yui-compressor'
 

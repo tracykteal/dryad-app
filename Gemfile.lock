@@ -558,6 +558,8 @@ GEM
       slop (~> 3.0)
     public_suffix (2.0.5)
     rack (1.6.11)
+    rack-attack (6.2.1)
+      rack (>= 1.0, < 3)
     rack-test (0.6.3)
       rack (>= 1.0)
     rails (4.2.11)
@@ -820,6 +822,7 @@ DEPENDENCIES
   pry
   pry-rails
   pry-remote
+  rack-attack
   rails (= 4.2.11)
   rb-readline
   rspec-collection_matchers
