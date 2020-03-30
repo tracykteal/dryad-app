@@ -130,8 +130,7 @@ module StashApi
                                  create(:curation_activity, resource: @resources[0], status: 'published')]]
 
         @curation_activities << [create(:curation_activity, resource: @resources[1], status: 'in_progress'),
-                                 create(:curation_activity, resource: @resources[1], status: 'curation'),
-                                 create(:curation_activity, resource: @resources[1], status: 'embargoed')]
+                                 create(:curation_activity, resource: @resources[1], status: 'curation')]
 
         @curation_activities << [create(:curation_activity, resource: @resources[2], status: 'in_progress'),
                                  create(:curation_activity, resource: @resources[2], status: 'curation')]
@@ -204,8 +203,6 @@ module StashApi
 
       describe 'shows appropriate latest resource metadata under identifier based on user' do
         before(:each) do
-          # make identifier[0] have a second version that isn't publicly viewable yet
-          @curation_activities[1][2].destroy
           # versions not getting set correctly for these two resources for some reason
           @resources[0].stash_version.update(version: 1)
           @resources[1].stash_version.update(version: 2)
@@ -220,7 +217,7 @@ module StashApi
 
           expect(hsh['_embedded']['stash:datasets'][0]['title']).to eq(@resources[0].title)
 
-          # the first version
+          # the second (embargoed) version
           expect(hsh['_embedded']['stash:datasets'][0]['versionNumber']).to eq(1)
         end
 
@@ -244,8 +241,8 @@ module StashApi
         it 'reduces scope to a curation status' do
           get '/api/v2/datasets', { 'curationStatus' => 'curation' }, default_authenticated_headers
           output = response_body_hash
-          expect(output[:count]).to eq(1)
-          expect(output['_embedded']['stash:datasets'].first['identifier']).to eq(@identifiers[1].to_s)
+          expect(output[:count]).to eq(2)
+          expect(output['_embedded']['stash:datasets'].first['identifier']).to eq(@identifiers[0].to_s)
         end
 
         it 'reduces scope to a publisher ISSN' do
