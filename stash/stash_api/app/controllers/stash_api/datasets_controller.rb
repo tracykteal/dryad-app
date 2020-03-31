@@ -111,7 +111,7 @@ module StashApi
     # get /datasets/<id>/download
     def download
       res = @stash_identifier.latest_viewable_resource(user: @user)
-
+      Rails.logger("res #{res.id}, current_user #{current_user.id}")
       if res.may_download?(ui_user: current_user)
         @version_streamer.download(resource: @res) do
           redirect_to landing_show_path(id: @res.identifier_str, big: 'showme') # if it's an async
