@@ -111,8 +111,9 @@ module StashApi
     # get /datasets/<id>/download
     def download
       res = @stash_identifier.latest_downloadable_resource(user: @user)
-      
-      logger.info("res #{res.id}, current_user #{current_user.id}")
+
+      render text: " was going to log res #{res.id}, current_user #{current_user.id}", status: 404
+      return
 
       if res.may_download?(ui_user: current_user)
         @version_streamer.download(resource: @res) do
