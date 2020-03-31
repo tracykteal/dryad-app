@@ -25,7 +25,7 @@ module StashEngine
     has_many :curation_activities, -> { order(id: :asc) }, class_name: 'StashEngine::CurationActivity', dependent: :destroy
     has_many :repo_queue_states, class_name: 'StashEngine::RepoQueueState', dependent: :destroy
     has_many :download_histories, class_name: 'StashEngine::DownloadHistory', dependent: :destroy
-    has_one :zenodo_third_copy, class_name: 'StashEngine::ZenodoThirdCopy', dependent: :destroy
+    has_one :zenodo_copy, class_name: 'StashEngine::ZenodoCopy', dependent: :destroy
 
     accepts_nested_attributes_for :curation_activities
 
@@ -359,10 +359,7 @@ module StashEngine
     # Date on which the user first submitted this dataset
     # (for peer_review datasets, the date at which it came out of peer_review)
     def submitted_date
-      curation_activities.order(:id).each do |ca|
-        return ca.created_at if ca.status == 'submitted'
-      end
-      nil
+      curation_activities.order(:id).where(status: 'submitted')&.first&.created_at
     end
 
     # Create the initial CurationActivity
