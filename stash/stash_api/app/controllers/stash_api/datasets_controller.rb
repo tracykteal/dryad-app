@@ -112,7 +112,7 @@ module StashApi
     def download
       res = @stash_identifier.latest_downloadable_resource(user: @user)
 
-      render text: " was going to log res #{res.id}, current_user #{current_user.id}", status: 404
+      render text: " was going to log res #{res.id}, current_user #{@user.id}", status: 404
     end
 #      return
 #      if res.may_download?(ui_user: current_user)
