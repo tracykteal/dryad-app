@@ -112,9 +112,9 @@ module StashApi
     def download
       res = @stash_identifier.latest_viewable_resource(user: @user)
 
-      if @resource.may_download?(ui_user: current_user)
-        @version_streamer.download(resource: @resource) do
-          redirect_to landing_show_path(id: @resource.identifier_str, big: 'showme') # if it's an async
+      if res.may_download?(ui_user: current_user)
+        @version_streamer.download(resource: @res) do
+          redirect_to landing_show_path(id: @res.identifier_str, big: 'showme') # if it's an async
         end
       #if res&.download_uri
       #  StashEngine::CounterLogger.version_download_hit(request: request, resource: res) if res
