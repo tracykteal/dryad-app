@@ -4,6 +4,8 @@
 
 require_dependency 'stash_api/application_controller'
 require_relative 'datasets/submission_mixin'
+require 'stash/download/file'
+require 'stash/download/version'
 
 module StashApi
   class DatasetsController < ApplicationController
