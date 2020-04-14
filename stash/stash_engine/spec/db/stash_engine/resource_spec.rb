@@ -29,6 +29,8 @@ module StashEngine
       # Mock all the mailers fired by callbacks because these tests don't load everything we need
       allow_any_instance_of(CurationActivity).to receive(:email_status_change_notices).and_return(true)
       allow_any_instance_of(CurationActivity).to receive(:email_orcid_invitations).and_return(true)
+
+      allow_any_instance_of(StashEngine::CurationActivity).to receive(:copy_to_zenodo).and_return(true)
     end
 
     describe :tenant do
@@ -1184,6 +1186,15 @@ module StashEngine
           expect(res.submitted_date.to_date).to eql(Date.parse('2020-01-02'))
         end
 
+        it 'returns the correct submitted_date when an item went straight from peer_review to curation' do
+          res = create(:resource, user_id: @user.id, tenant_id: @user.tenant_id)
+          create(:curation_activity_no_callbacks, resource: res, created_at: '2020-01-01', status: 'in_progress')
+          create(:curation_activity_no_callbacks, resource: res, created_at: '2020-01-02', status: 'peer_review')
+          create(:curation_activity_no_callbacks, resource: res, created_at: '2020-01-03', status: 'curation')
+          create(:curation_activity_no_callbacks, resource: res, created_at: '2020-01-04', status: 'published')
+          expect(res.submitted_date.to_date).to eql(Date.parse('2020-01-03'))
+        end
+
         it 'returns nil if there is no submitted_date' do
           res = create(:resource, user_id: @user.id, tenant_id: @user.tenant_id)
           create(:curation_activity_no_callbacks, resource: res, created_at: '2020-01-01', status: 'in_progress')
@@ -1315,6 +1326,34 @@ module StashEngine
       end
     end
 
-  end
+    describe '#send_to_zenodo' do
 
+      before(:each) do
+        # This is all horribly hacky because of the way these tests don't load Rails correctly, we need move tests to
+        # a real Rails environment.
+
+        require 'active_job'
+        rails_root = Dir.mktmpdir('rails_root')
+        root_path = Pathname.new(rails_root)
+        allow(Rails).to receive(:root).and_return(root_path)
+
+        require_relative '../../../app/jobs/stash_engine/zenodo_copy_job'
+
+        @resource = create(:resource)
+      end
+
+      it 'creates a zenodo_copy record in database' do
+        allow(ZenodoCopyJob).to receive(:perform_later).and_return(nil)
+        @resource.send_to_zenodo
+        @resource.reload
+        expect(@resource.zenodo_copy).not_to be_nil
+        expect(@resource.zenodo_copy.state).to eq('enqueued')
+      end
+
+      it 'calls perform_later' do
+        expect(ZenodoCopyJob).to receive(:perform_later).with(@resource.id)
+        @resource.send_to_zenodo
+      end
+    end
+  end
 end

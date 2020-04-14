@@ -359,7 +359,7 @@ module StashEngine
     # Date on which the user first submitted this dataset
     # (for peer_review datasets, the date at which it came out of peer_review)
     def submitted_date
-      curation_activities.order(:id).where(status: 'submitted')&.first&.created_at
+      curation_activities.order(:id).where("status = 'submitted' OR status = 'curation'")&.first&.created_at
     end
 
     # Create the initial CurationActivity
@@ -601,6 +601,11 @@ module StashEngine
       solr_indexer = Stash::Indexer::SolrIndexer.new(solr_url: Blacklight.connection_config[:url])
       result = solr_indexer.delete_document(doi: identifier.to_s) # returns true/false for success of operation
       update(solr_indexed: false) if result
+    end
+
+    def send_to_zenodo
+      ZenodoCopy.create(state: 'enqueued', identifier_id: identifier_id, resource_id: id) if zenodo_copy.nil?
+      ZenodoCopyJob.perform_later(id)
     end
 
     private
